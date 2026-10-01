@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#101b1d"><title>ATELIER 35 — Máy ảnh tương tác</title><style>/* INLINE_CSS */</style></head>
+<body>
+<header><a class="wordmark" href="#" aria-label="Đặt lại demo">ATELIER<span>PHÒNG TRƯNG BÀY 3D</span></a><div class="header-note"><i></i> THIẾT KẾ BẰNG THREE.JS</div><button id="reset" class="quiet">↺ <span>Đặt lại</span></button></header>
+<main>
+  <div class="intro"><p class="eyebrow">NGHIÊN CỨU ĐỒ VẬT / 001</p><p class="intro-note">ATELIER 35 · Máy ảnh retro tương tác</p></div>
+  <div id="stage" aria-label="Máy ảnh 3D: kéo để xoay, chụm hoặc cuộn để phóng to"><div id="loading">Đang dựng máy ảnh…</div></div>
+  <div id="toast" role="status" aria-live="polite">Kéo để xoay · Cuộn để phóng to</div>
+  <div class="view-tools" aria-label="Góc nhìn"><button data-view="hero" class="active">3/4</button><button data-view="front">Trước</button><button data-view="back">Sau</button><button data-view="top">Trên</button><span></span><button id="zoom-in" aria-label="Phóng to">+</button><button id="zoom-out" aria-label="Thu nhỏ">−</button></div>
+  <aside id="inspector">
+    <div class="panel-heading"><div><p class="eyebrow">KHÁM PHÁ CẤU TẠO</p><h2>ATELIER <span>35</span></h2></div><button id="collapse" aria-label="Thu gọn bảng điều khiển" aria-expanded="true">⌄</button></div>
+    <div class="panel-content">
+      <div class="tabs"><button id="tab-actions" class="active" aria-pressed="true">Tương tác</button><button id="tab-parts" aria-pressed="false">Bộ phận <small>09</small></button></div>
+      <section id="actions-panel">
+        <div class="slider-heading"><label for="explode">Tách bộ phận</label><output id="explode-value">0%</output></div>
+        <input id="explode" type="range" min="0" max="100" value="0" aria-label="Mức tách bộ phận">
+        <div class="range-labels"><span>Lắp hoàn chỉnh</span><span>Xem cấu tạo</span></div>
+        <div class="action-grid"><button id="detach">↗ <span>Tháo ống kính</span></button><button id="open-back">▱ <span>Mở nắp lưng</span></button></div>
+        <div class="focus-control"><div class="slider-heading focus-heading"><label for="focus">Vòng lấy nét</label><output id="focus-value">0°</output></div>
+        <input id="focus" type="range" min="0" max="100" value="0" aria-label="Xoay vòng lấy nét"></div>
+        <button id="shoot" class="primary"><span class="shutter-icon">◎</span> Chụp thử <span class="arrow">↗</span></button>
+        <p class="shot-note">Bấm nút để xem chuyển động và ánh chớp.</p>
+      </section>
+      <section id="parts-panel" hidden><div id="part-list"></div></section>
+      <div class="selection"><p class="eyebrow" id="selection-index">THIẾT KẾ NGUYÊN BẢN</p><h3 id="selection-title">Chạm để khám phá</h3><p id="selection-note">Chọn một bộ phận trên mô hình để xem chi tiết và cấu tạo của nó.</p><button id="isolate" hidden>Chỉ xem bộ phận này</button></div>
+      <div class="toggles"><label><input id="rotate" type="checkbox"> Tự xoay</label><label><input id="wire" type="checkbox"> Khung lưới</label></div>
+    </div>
+  </aside>
+</main>
+<footer><span><i></i> MÔ HÌNH TƯƠNG TÁC <b>01 / 01</b></span><span id="stats">Đang khởi tạo…</span><span class="footer-hint">Kéo để xoay · Chuột phải để dịch chuyển</span></footer>
+<div id="flash" aria-hidden="true"></div>
+<script>/* INLINE_JS */</script>
+</body></html>

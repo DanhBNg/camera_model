@@ -1,0 +1,21 @@
+{
+  "name": "atelier-camera-showcase",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build-camera-showcase.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "npm run build && node scripts/check-camera-showcase.mjs && node scripts/check-camera-learning.mjs"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10",
+    "playwright": "1.63.0"
+  }
+}
