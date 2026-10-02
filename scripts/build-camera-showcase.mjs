@@ -2,7 +2,7 @@ import {build} from 'esbuild';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 const base='src/demos/atelier-camera/';
 const [result,html,css]=await Promise.all([
-  build({entryPoints:[base+'viewer.js'],bundle:true,minify:true,format:'iife',write:false}),
+  build({entryPoints:[base+'viewer.js'],bundle:true,minify:true,format:'iife',write:false,loader:{'.glb':'binary'}}),
   readFile(base+'index.html','utf8'),readFile(base+'style.css','utf8'),
 ]);
 const output=html.replace('/* INLINE_CSS */',()=>css).replace('/* INLINE_JS */',()=>result.outputFiles[0].text.replaceAll('</script','<\\/script'));

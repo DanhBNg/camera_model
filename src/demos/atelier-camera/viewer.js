@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
-import {createAtelierCameraModel,createAtelierCameraLookDevLights} from './createAtelierCameraModel.js';
+import {createAtelierCameraLookDevLights} from './createAtelierCameraModel.js';
+import {loadCameraModel} from './loadCameraModel.js';
 import {createCameraActions} from './actions.js';
 import {CAMERA_PARTS,CAMERA_VIEW} from './geo.js';
-import {createCameraLearning} from './learning.js';
 
 const $=s=>document.querySelector(s);
 const stage=$('#stage');
-function boot(){
+async function boot(){
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(0x000000,0);
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;
@@ -16,21 +16,33 @@ function boot(){
   const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(CAMERA_VIEW.fov,1,.05,100);
   const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment();
   const env=pmrem.fromScene(room,.04);scene.environment=env.texture;scene.environmentIntensity=.6;room.dispose();pmrem.dispose();
-  const model=createAtelierCameraModel();scene.add(model,createAtelierCameraLookDevLights());
+  const model=await loadCameraModel();scene.add(model,createAtelierCameraLookDevLights());
   const originalMaterials=new Set();model.traverse(o=>{if(o.isMesh){originalMaterials.add(o.material);o.material=o.material.clone();}});originalMaterials.forEach(m=>m.dispose());
   const actions=createCameraActions(model),runtime=model.userData.sculptRuntime;
   let learning;
-  const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.075;controls.minDistance=4;controls.maxDistance=20;controls.maxPolarAngle=Math.PI*.94;controls.autoRotateSpeed=.65;
+  const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.075;controls.minDistance=4;controls.maxDistance=40;controls.maxPolarAngle=Math.PI*.94;controls.autoRotateSpeed=.65;
   const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
   let selected=null,isolate=false,highlighted=[],viewName='hero',last=performance.now(),frameCount=0,statsAt=last;
   const views={hero:[5.7,3.1,7.8],front:[0,.2,9.5],back:[-.4,2.1,-9.2],top:[0,9,.65]};
   function setView(name='hero'){
     controls.enableDamping=false;controls.update();
     viewName=name;controls.target.set(...CAMERA_VIEW.target);camera.position.set(...views[name]);
-    if(stage.clientWidth<600)camera.position.sub(controls.target).multiplyScalar(1.22).add(controls.target);
-    controls.update();controls.enableDamping=true;document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+    controls.update();
+    if(stage.clientWidth<600 || actions.state.explosion>0){
+      model.updateMatrixWorld(true);
+      const b=new THREE.Box3().setFromObject(model),tan=Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
+      const inverse=camera.quaternion.clone().invert();let distance=0;
+      for(const x of [b.min.x,b.max.x])for(const y of [b.min.y,b.max.y])for(const z of [b.min.z,b.max.z]){
+        const v=new THREE.Vector3(x,y,z).sub(controls.target).applyQuaternion(inverse);
+        distance=Math.max(distance,Math.abs(v.x)/(tan*camera.aspect)+v.z,Math.abs(v.y)/tan+v.z);
+      }
+      const offset=camera.position.clone().sub(controls.target);
+      camera.position.copy(offset.setLength(Math.max(offset.length(),distance*1.18))).add(controls.target);
+      controls.update();
+    }
+    controls.enableDamping=true;document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
   }
-  function resize(){renderer.setSize(stage.clientWidth,stage.clientHeight);camera.aspect=stage.clientWidth/Math.max(1,stage.clientHeight);camera.updateProjectionMatrix();}
+  function resize(){renderer.setSize(stage.clientWidth,stage.clientHeight);camera.aspect=stage.clientWidth/Math.max(1,stage.clientHeight);camera.updateProjectionMatrix();if(stage.clientWidth<600)setView(viewName);}
   new ResizeObserver(resize).observe(stage);resize();setView();
   function toast(text){$('#toast').textContent=text;}
   function restoreHighlight(){for(const [o,material,copy] of highlighted){o.material=material;copy.dispose();}highlighted=[];}
@@ -39,7 +51,7 @@ function boot(){
     restoreHighlight();selected=id;
     for(const [key,a] of Object.entries(runtime.assemblies))a.node.visible=!isolate || key===selected;
     if(id){runtime.nodes[id].traverse(o=>{if(o.isMesh&&o.material.emissive){const old=o.material,copy=old.clone();copy.emissive.set(0x688445);copy.emissiveIntensity=.25;o.material=copy;highlighted.push([o,old,copy]);}});}
-    $('#selection-index').textContent=id?`BỘ PHẬN ${String(Object.keys(CAMERA_PARTS).indexOf(id)+1).padStart(2,'0')} / 09`:'THIẾT KẾ NGUYÊN BẢN';
+    $('#selection-index').textContent=id?`BỘ PHẬN ${String(Object.keys(CAMERA_PARTS).indexOf(id)+1).padStart(2,'0')} / ${Object.keys(CAMERA_PARTS).length}`:'THIẾT KẾ NGUYÊN BẢN';
     $('#selection-title').textContent=id?CAMERA_PARTS[id].label:'Chạm để khám phá';
     $('#selection-note').textContent=id?CAMERA_PARTS[id].note:'Chọn một bộ phận trên mô hình để xem chi tiết và cấu tạo của nó.';
     $('#isolate').hidden=!id;$('#isolate').textContent=isolate?'Hiện toàn bộ máy':'Chỉ xem bộ phận này';
@@ -63,7 +75,14 @@ function boot(){
     if(learning?.active)for(const id of ['shoot','open-back','explode','detach','focus','isolate','wire','rotate'])$('#'+id).disabled=true;
     else for(const id of ['detach','focus','isolate','wire','rotate'])$('#'+id).disabled=false;
   }
-  $('#explode').addEventListener('input',e=>{actions.setExplosion(e.target.value/100);sync();});
+  $('#explode').addEventListener('input',e=>{
+    const before=actions.state.explosion;
+    if(actions.setExplosion(e.target.value/100)){
+      const ratio=(1+.48*actions.state.explosion)/(1+.48*before);
+      camera.position.sub(controls.target).multiplyScalar(ratio).add(controls.target);controls.update();
+    }
+    sync();
+  });
   $('#focus').addEventListener('input',e=>{actions.setFocus(e.target.value/100);sync();});
   $('#detach').onclick=()=>{actions.toggleLens();sync();};$('#open-back').onclick=()=>{if(actions.toggleBack())toast(actions.state.backOpen?'Đang mở nắp lưng ra ngoài.':'Đang đóng nắp lưng.');sync();};
   $('#shoot').onclick=()=>{if(!actions.shoot()){toast('Đợi máy ráp lại hoàn chỉnh để chụp.');return;}const f=$('#flash');f.classList.remove('firing');void f.offsetWidth;f.classList.add('firing');toast(`Đã chụp thử · Khung hình ${String(actions.state.shot).padStart(2,'0')}`);};
@@ -90,11 +109,11 @@ function boot(){
   });
   renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){isolate=false;select(null);}});
-  learning=createCameraLearning({model,camera,stage,controls,actions,reset,select});
+  // Learning/assembly gameplay is deferred at the owner's request.
   $('#loading').remove();sync();
-  renderer.setAnimationLoop(now=>{const dt=Math.min((now-last)/1000,.05);last=now;actions.update(dt);syncAvailability();controls.update();learning.update(dt);renderer.render(scene,camera);frameCount++;
+  renderer.setAnimationLoop(now=>{const dt=Math.min((now-last)/1000,.05);last=now;actions.update(dt);syncAvailability();controls.update();learning?.update(dt);renderer.render(scene,camera);frameCount++;
     if(now-statsAt>1000){$('#stats').textContent=`${renderer.info.render.triangles.toLocaleString('vi-VN')} tam giác · ${renderer.info.render.calls} lượt vẽ · ${Math.round(frameCount*1000/(now-statsAt))} FPS`;statsAt=now;frameCount=0;}
   });
   window.cameraShowcase={model,actions,select,setView,reset,renderer,camera,controls,learning,stats:()=>({...renderer.info.render}),ready:true};
 }
-try{boot();}catch(error){console.error(error);$('#loading').textContent='Không khởi tạo được 3D. Hãy mở bằng Chrome hoặc Edge có bật tăng tốc đồ họa.';}
+boot().catch(error=>{console.error(error);$('#loading').textContent='Không khởi tạo được 3D. Hãy mở bằng Chrome hoặc Edge có bật tăng tốc đồ họa.';});

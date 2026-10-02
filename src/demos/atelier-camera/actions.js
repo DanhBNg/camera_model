@@ -29,6 +29,7 @@ export function createCameraActions(root) {
       for(const a of Object.values(runtime.assemblies)) a.node.position.copy(bind.get(a.node)).addScaledVector(a.offset,visibleExplosion);
       runtime.nodes.lens.position.z+=detach*1.1;
       if(runtime.nodes.glass) runtime.nodes.glass.position.z+=detach*1.1;
+      if(runtime.nodes.iris) runtime.nodes.iris.position.z+=detach*1.1;
       runtime.nodes.lens.rotation.z=-detach*.28;
       runtime.pivots.focus.rotation.z=state.focus*Math.PI*.65;
       // +Y rotation moves the free edge (+X from the hinge) toward the rear (-Z).

@@ -1,6 +1,10 @@
 # ATELIER 35 — Camera Showcase
 
-Source đầy đủ cho demo máy ảnh 3D procedural bằng Three.js. `index.html` ở gốc là bản đóng gói có thể mở trực tiếp hoặc gửi riêng; chỉnh sửa trong `src/` rồi build lại.
+Model mới dựng bằng Blender theo quy trình design-os-3d-blender: **17 cụm**, vỏ kim loại bo cạnh, vân da, chữ khắc, ba thấu kính, khẩu độ chín lá và khoang phim chi tiết. Three.js hiển thị file GLB. `index.html` ở gốc là bản offline mở trực tiếp hoặc gửi riêng.
+
+Nguồn chỉnh sửa: `blender/camera/camera-editable.blend`; bản mesh tối ưu: `blender/camera/camera.blend`; scene có đèn/camera: `blender/camera/camera-studio.blend`. File web: `src/assets/models/camera.glb`. Các .blend sinh lại được bằng script và bỏ qua trong Git. Xem [quy trình và giới hạn](blender/camera/state.md), [báo cáo kiểm tra](blender/camera/build-report.json).
+
+**Trò chơi học/lắp ráp tạm gác theo yêu cầu.** Bản hiện tại giữ xoay/zoom, chọn cụm, tách xem cấu tạo, tháo ống kính, mở nắp lưng, lấy nét và chụp thử.
 
 ## Cài đặt và build
 
@@ -8,10 +12,11 @@ Yêu cầu Node.js 20 trở lên.
 
 ```sh
 npm ci
+npm run model:camera
 npm run build
 ```
 
-Mở `index.html` bằng trình duyệt. Build tạo `index.html` và `dist/index.html`, nhúng JS, CSS và texture canvas; HTML không cần Internet. Khi sửa source, build lại và commit cả `index.html` để bản mở trực tiếp luôn đồng bộ.
+`model:camera` dùng Blender 5.2.2 portable sẵn tại `C:/Users/AMLT/Desktop/explode/tools/blender-5.2.2-windows-x64/blender.exe`; đặt `BLENDER_BIN` để đổi đường dẫn. Lệnh dựng .blend, xuất GLB rồi mở lại trong tiến trình riêng để kiểm tra. Build tạo `index.html` và `dist/index.html`, nhúng JS, CSS, GLB và texture; HTML không cần Internet.
 
 ## Cấu trúc source
 
@@ -19,7 +24,8 @@ Trong `src/demos/atelier-camera/`:
 
 | File | Trách nhiệm |
 | --- | --- |
-| `createAtelierCameraModel.js` | Factory model, geometry và registry `root.userData.sculptRuntime` với nodes/pivots/sockets/assemblies |
+| `loadCameraModel.js` | Nạp GLB, đổi đơn vị và cấp registry nodes/pivots/sockets/assemblies |
+| `createAtelierCameraModel.js` | Factory cũ được giữ làm tham chiếu; viewer dùng GLB mới và hàm đèn studio |
 | `materials.js` | Vật liệu PBR và texture canvas |
 | `geo.js` | Metadata bộ phận, hướng tách và góc nhìn |
 | `actions.js` | Controller tháo/lắp, nắp lưng, lấy nét và chụp |
@@ -40,7 +46,7 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-Kiểm tra desktop/mobile: orbit/zoom, tháo lắp, chọn cụm, nắp lưng, chụp, kéo/thả lắp ráp. Kết quả/ảnh nằm trong `artifacts/` (không commit).
+Kiểm tra desktop/mobile: orbit/zoom, tách cụm, chọn đủ 17 cụm, nắp lưng, chụp, lấy nét và khung hình mobile. Phần kéo/thả lắp ráp đã tạm loại khỏi bộ kiểm tra đang chạy. Kết quả/ảnh nằm trong `artifacts/` (không commit); ảnh studio tại `artifacts/blender/camera-studio.png`.
 
 Có thể dùng Chrome cài sẵn thay Chromium của Playwright: đặt biến môi trường `PLAYWRIGHT_CHANNEL=chrome` trước khi chạy `npm run test:browser`.
 

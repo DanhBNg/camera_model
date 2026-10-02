@@ -10,7 +10,9 @@ try{
   const page=await browser.newPage({viewport,isMobile:viewport.width<500,hasTouch:viewport.width<500});
   const errors=[],external=[];page.on('pageerror',e=>errors.push(String(e)));page.on('request',r=>{if(/^https?:/.test(r.url()))external.push(r.url());});
   await page.goto(pathToFileURL(process.cwd()+'/index.html').href);
-  await page.waitForFunction(()=>window.cameraShowcase?.ready);await page.waitForTimeout(400);
+  await page.waitForFunction(()=>window.cameraShowcase?.ready && cameraShowcase.stats().frame>=3);await page.waitForTimeout(400);
+  assert.equal(await page.locator('[data-part]').count(),17);
+  assert.equal(await page.locator('#assembly-start').count(),0,'assembly game is deferred');
   assert.equal(await page.locator('h1').count(),0);
   const tag=viewport.width<500?'mobile':'desktop';
   await page.screenshot({path:`${out}/${tag}.png`});
@@ -30,13 +32,18 @@ try{
   await page.locator('#tab-parts').click();await page.locator('[data-part="lens"]').click();
   await page.locator('#isolate').click();
   assert.equal(await page.evaluate(()=>Object.values(cameraShowcase.model.userData.sculptRuntime.assemblies).filter(a=>a.node.visible).length),1);
+  for(const id of ['iris','speed_dial','rewind','advance','film_cartridge','takeup','film_gate','curtain']){
+   await page.locator(`[data-part="${id}"]`).click();
+   assert.equal(await page.evaluate(id=>Object.entries(cameraShowcase.model.userData.sculptRuntime.assemblies).filter(([,a])=>a.node.visible).map(([key])=>key).join(','),id),id);
+  }
   await page.locator('#reset').click();await page.locator('#tab-actions').click();
   await page.locator('#detach').click();await page.waitForTimeout(500);
   assert.equal(await page.evaluate(()=>cameraShowcase.actions.state.lensDetached),true);
   await page.locator('#reset').click();await page.locator('[data-view="back"]').click();
   const backView=await page.evaluate(()=>cameraShowcase.camera.position.toArray());
   await page.locator('#open-back').click();await page.waitForTimeout(800);
-  assert.deepEqual(await page.evaluate(()=>cameraShowcase.camera.position.toArray()),backView);
+  const afterBackView=await page.evaluate(()=>cameraShowcase.camera.position.toArray());
+  assert.ok(afterBackView.every((v,i)=>Math.abs(v-backView[i])<1e-8),'opening back must not change the view');
   assert.equal(await page.locator('#explode').isDisabled(),true);
   assert.equal(await page.locator('#open-back span').textContent(),'Đóng nắp lưng');
   assert.ok(await page.evaluate(()=>cameraShowcase.model.userData.sculptRuntime.pivots.back.rotation.y>0));
@@ -68,6 +75,27 @@ try{
    await cdp.detach();
    await page.locator('#collapse').click();await page.waitForTimeout(200);await page.evaluate(()=>cameraShowcase.setView('hero'));await page.screenshot({path:`${out}/mobile-expanded.png`});
    assert.ok(await page.locator('#stage').evaluate(el=>el.clientHeight>500));
+   assert.ok(await page.evaluate(()=>{
+    const s=cameraShowcase,b=s.model.userData.sculptRuntime.bounds;
+    for(const x of [b.min.x,b.max.x])for(const y of [b.min.y,b.max.y])for(const z of [b.min.z,b.max.z]){
+     const v=s.camera.position.clone().set(x,y,z).project(s.camera);
+     if(Math.abs(v.x)>1||Math.abs(v.y)>1)return false;
+    }return true;
+   }),'assembled camera fits the expanded mobile viewport');
+   await page.locator('#collapse').click();
+   await page.locator('#explode').evaluate(el=>{el.value=100;el.dispatchEvent(new Event('input',{bubbles:true}));});
+   await page.waitForTimeout(800);
+   await page.locator('#collapse').click();
+   for(const angle of ['hero','front','back','top']){
+    await page.locator(`[data-view="${angle}"]`).click();
+    assert.ok(await page.evaluate(()=>{
+     const s=cameraShowcase,b=s.model.userData.sculptRuntime.bounds.clone().setFromObject(s.model);
+     for(const x of [b.min.x,b.max.x])for(const y of [b.min.y,b.max.y])for(const z of [b.min.z,b.max.z]){
+      const v=s.camera.position.clone().set(x,y,z).project(s.camera);
+      if(Math.abs(v.x)>1||Math.abs(v.y)>1)return false;
+     }return true;
+    }),`exploded camera fits mobile ${angle}`);
+   }
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
