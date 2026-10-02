@@ -1,0 +1,15 @@
+{
+  "designOs": {
+    "repository": "https://github.com/jangtrinh/design-os-3d-blender.git",
+    "revision": "0fa32f46f261009f14cf318c8c4b3137f210a667",
+    "localPath": "C:/Users/AMLT/Desktop/explode/tools/design-os-3d-blender"
+  },
+  "blender": {
+    "version": "5.2.2 LTS",
+    "buildHash": "d13f752e3b9c",
+    "executable": "C:/Users/AMLT/Desktop/explode/tools/blender-5.2.2-windows-x64/blender.exe",
+    "overrideEnvironmentVariable": "BLENDER_BIN"
+  },
+  "workflow": "Native Python, headless build, independent GLB reimport, browser inspection",
+  "purpose": "Interactive web visualization"
+}

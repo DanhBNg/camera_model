@@ -3,3 +3,6 @@ artifacts/
 dist/
 .vercel/
 *.log
+__pycache__/
+*.blend1
+blender/camera/*.blend

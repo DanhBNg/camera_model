@@ -1,5 +1,7 @@
 # ATELIER 35 — demo máy ảnh
 
+**Cập nhật 02/10/2026:** viewer hiện dùng GLB dựng bằng Blender, 17 cụm. Trò chơi học/lắp ráp tạm gác theo yêu cầu. Xem [quy trình model mới](../blender/camera/state.md) và [báo cáo hiện tại](../blender/camera/build-report.json). Các số liệu và mô tả factory procedural bên dưới lưu lại bản cũ để tham khảo, không phải bằng chứng kiểm tra bản Blender.
+
 Mở `index.html` bằng Chrome/Edge. Có thể gửi riêng file này: Three.js, code và các texture tạo bằng canvas đều nằm trong HTML; không cần server hoặc Internet.
 
 ## Các thao tác

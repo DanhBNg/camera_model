@@ -1,0 +1,54 @@
+{
+  "status": "PASS",
+  "sha256": "df0dbc8e3b6d6057bcdb0917fe0815b81aaee47c75bace06463b586aac506906",
+  "assemblies": [
+    "advance",
+    "back",
+    "base",
+    "body",
+    "curtain",
+    "film_cartridge",
+    "film_gate",
+    "finder",
+    "glass",
+    "iris",
+    "lens",
+    "mount",
+    "rewind",
+    "shutter",
+    "speed_dial",
+    "takeup",
+    "top"
+  ],
+  "meshes": 75,
+  "triangles": 173307,
+  "bytes": 3715384,
+  "dimensions_m_blender_xyz": [
+    0.14490000903606415,
+    0.08692499808967113,
+    0.09217249229550362
+  ],
+  "materials": 11,
+  "checks": [
+    "GLB reimport",
+    "17 named roots",
+    "focus hierarchy",
+    "finite vertices",
+    "materials",
+    "dimension bounds",
+    "geometry budget",
+    "self contained buffers and images"
+  ],
+  "purpose": "interactive web visualization",
+  "manufacture": "NOT_REQUESTED",
+  "source_sha256": {
+    "build.py": "689cd3c63af2b8a8ecedafaf8972e29fad278326100fbfc80be1b493537ba44e",
+    "chassis.py": "5b81eefda1deea9324ff74dadc4485ceaa30aad29860f7d3b51450b783fc7a59",
+    "geometry.py": "66b3d781453595640dbc0196253c847c407aeeadc24b6e63b6e00c9ccc05097d",
+    "mechanisms.py": "291c85524c0c8b389bdfaddc3769c139d652f42e1a3ec42636e8cd616e6a7563",
+    "optics.py": "908a7df9971c0e381972cf046c11c55b581280edd3feb859666878b70593ae3d",
+    "preview.py": "01e6ad9694d9ea5200c2f38d86d5c27829347657bafffd23f4f769d1d29be6e7",
+    "verify.py": "11bf586bf25895768319706fdddd68137f60ba630b76a7aae791c9aeff26e9c2"
+  },
+  "blend_sha256": "e8e378a303572f8df42e4ca3d9c580719b6179a58377fa4b4ddbc41c62630cb5"
+}
